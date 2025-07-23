@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include:
+      file: db/migration/001-create-role-type.yaml
+  - include:
+      file: db/migration/002-create-user-status-type.yaml
+  - include:
+      file: db/migration/003-create-card-status-type.yaml
+  - include:
+      file: db/migration/010-create-users.yaml
+  - include:
+      file: db/migration/020-create-cards.yaml
+  - include:
+      file: db/migration/030-create-card-transfers.yaml

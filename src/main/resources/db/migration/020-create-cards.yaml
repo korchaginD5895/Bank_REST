@@ -1,0 +1,66 @@
+databaseChangeLog:
+  - changeSet:
+      id: 020-create-cards
+      author: Dmitriy Korchagin
+      changes:
+        - createTable:
+            tableName: cards
+            columns:
+              - column:
+                  name: id
+                  type: BIGSERIAL
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: card_number_encrypted
+                  type: VARCHAR(32)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: owner_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiry_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: cardstatus
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance
+                  type: NUMERIC(19,2)
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: cards
+            baseColumnNames: owner_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_cards_user
+        # Индексы
+        - createIndex:
+            indexName: idx_cards_card_number_encrypted
+            tableName: cards
+            unique: true
+            columns:
+              - column:
+                  name: card_number_encrypted
+        - createIndex:
+            indexName: idx_cards_owner_id
+            tableName: cards
+            columns:
+              - column:
+                  name: owner_id
+        - createIndex:
+            indexName: idx_cards_status
+            tableName: cards
+            columns:
+              - column:
+                  name: status

@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-card-status-type
+      author: Dmitriy Korchagin
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'cardstatus') THEN
+                  CREATE TYPE cardstatus AS ENUM ('ACTIVE', 'BLOCKED', 'EXPIRED');
+                END IF;
+              END$$;

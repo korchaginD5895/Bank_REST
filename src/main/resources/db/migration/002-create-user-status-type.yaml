@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-user-status-type
+      author: Dmitriy Korchagin
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'userstatus') THEN
+                  CREATE TYPE userstatus AS ENUM ('ACTIVE', 'BLOCKED');
+                END IF;
+              END$$;

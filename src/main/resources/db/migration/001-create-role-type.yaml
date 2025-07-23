@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-role-type
+      author: Dmitriy Korchagin
+      changes:
+        - sql:
+            splitStatements: false
+            sql: |
+              DO $$
+              BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'role') THEN
+                  CREATE TYPE role AS ENUM ('ADMIN', 'USER');
+                END IF;
+              END$$;
