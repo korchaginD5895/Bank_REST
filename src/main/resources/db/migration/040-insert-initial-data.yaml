@@ -1,0 +1,56 @@
+databaseChangeLog:
+  - changeSet:
+      id: 099-insert-initial-data
+      author: Dmitriy Korchagin
+      changes:
+        # Пользователь-администратор
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: username, value: admin }
+              - column: { name: password, value: "$2a$10$5eTnMZ60CRfAodgma2gf4O6k1abPv12nHBGKqvG29zr/7wHvlkDBK" } # пароль: admin123
+              - column: { name: full_name, value: "Administrator" }
+              - column: { name: email, value: "admin@bankcards.test" }
+              - column: { name: role, value: ADMIN }
+              - column: { name: status, value: ACTIVE }
+
+        # Пользователь-обычный
+        - insert:
+            tableName: users
+            columns:
+              - column: { name: username, value: user }
+              - column: { name: password, value: "$2a$10$6qUnpNwAFUZEMdfsgvI0u.hLLGFSRby9Rb.ymkT7EBqkJqd5ee3EO" } # пароль: user123
+              - column: { name: full_name, value: "Demo User" }
+              - column: { name: email, value: "user@bankcards.test" }
+              - column: { name: role, value: USER }
+              - column: { name: status, value: ACTIVE }
+
+        # Карта admin (id пользователя — 1)
+        - insert:
+            tableName: cards
+            columns:
+              - column: { name: card_number_encrypted, value: "ENCRYPTED_ADMIN_1" }
+              - column: { name: owner_id, valueNumeric: 1 }
+              - column: { name: expiry_date, valueDate: "2030-12-31" }
+              - column: { name: status, value: ACTIVE }
+              - column: { name: balance, valueNumeric: 100000 }
+
+        # Карта user #1 (id пользователя — 2)
+        - insert:
+            tableName: cards
+            columns:
+              - column: { name: card_number_encrypted, value: "ENCRYPTED_USER1_1" }
+              - column: { name: owner_id, valueNumeric: 2 }
+              - column: { name: expiry_date, valueDate: "2030-12-31" }
+              - column: { name: status, value: ACTIVE }
+              - column: { name: balance, valueNumeric: 20000 }
+
+        # Карта user #2 (id пользователя — 2)
+        - insert:
+            tableName: cards
+            columns:
+              - column: { name: card_number_encrypted, value: "ENCRYPTED_USER1_2" }
+              - column: { name: owner_id, valueNumeric: 2 }
+              - column: { name: expiry_date, valueDate: "2031-12-31" }
+              - column: { name: status, value: ACTIVE }
+              - column: { name: balance, valueNumeric: 30000 }

@@ -6,6 +6,7 @@ import com.example.bankcards.entity.User;
 import com.example.bankcards.enums.UserStatus;
 import com.example.bankcards.enums.Role;
 import com.example.bankcards.repository.UserRepository;
+import com.example.bankcards.mapper.UserMapper;
 import com.example.bankcards.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
     @Override
     public UserDto createUser(UserCreateRequest request) {
@@ -36,28 +38,25 @@ public class UserServiceImpl implements UserService {
                 .role(Role.valueOf(request.role()))
                 .status(UserStatus.ACTIVE)
                 .build();
-        user = userRepository.save(user);
-        return toDto(user);
+        return userMapper.toDto(userRepository.save(user));
     }
 
     @Override
     public UserDto getUserById(Long id) {
         log.info("Fetching user by id: {}", id);
-        User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
-        return toDto(user);
+        return userRepository.findById(id)
+                .map(userMapper::toDto)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
     }
 
     @Override
     public Page<UserDto> getUsers(String search, Pageable pageable) {
         log.info("Fetching users: search={}, page={}", search, pageable.getPageNumber());
-        Page<User> users;
-        if (search != null && !search.isBlank()) {
-            users = userRepository.findAllByUsernameContainingIgnoreCaseOrFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
-                    search, search, search, pageable);
-        } else {
-            users = userRepository.findAll(pageable);
-        }
-        return users.map(this::toDto);
+        Page<User> users = (search != null && !search.isBlank())
+                ? userRepository.findAllByUsernameContainingIgnoreCaseOrFullNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                search, search, search, pageable)
+                : userRepository.findAll(pageable);
+        return users.map(userMapper::toDto);
     }
 
     @Override
@@ -67,16 +66,5 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("User not found");
         }
         userRepository.deleteById(id);
-    }
-
-    private UserDto toDto(User user) {
-        return new UserDto(
-                user.getId(),
-                user.getUsername(),
-                user.getFullName(),
-                user.getEmail(),
-                user.getRole().name(),
-                user.getStatus().name()
-        );
     }
 }

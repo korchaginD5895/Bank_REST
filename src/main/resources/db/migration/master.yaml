@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/migration/020-create-cards.yaml
   - include:
       file: db/migration/030-create-card-transfers.yaml
+  - include:
+      file: db/migration/040-insert-initial-data.yaml
