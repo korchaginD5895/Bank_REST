@@ -1,1 +1,364 @@
-# Здесь будет OpenAPI описание всех доступных эндпоинтов и моделей данных.
+openapi: 3.0.3
+info:
+  title: Bank Card Management API
+  version: 1.0.0
+  description: |
+    REST API for managing bank cards and users.
+    Authentication and authorization via Keycloak (Bearer JWT).
+
+servers:
+  - url: http://localhost:8080//api/v1
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Card
+    description: Operations on bank cards
+  - name: Transfer
+    description: Transfer operations between cards
+  - name: User
+    description: Operations on user accounts
+
+paths:
+  /cards:
+    post:
+      tags: [Card]
+      summary: Create a new card
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardCreateRequest'
+      responses:
+        '201':
+          description: Card created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDto'
+
+    get:
+      tags: [Card]
+      summary: List cards with filter and pagination
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: ownerUsername
+          schema:
+            type: string
+          description: Filter by owner username
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/CardStatus'
+          description: Filter by card status
+        - in: query
+          name: expirationBefore
+          schema:
+            type: string
+            format: date
+          description: Return cards expiring before this date
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 0
+          description: Page number (0-based)
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 20
+          description: Page size
+      responses:
+        '200':
+          description: List of cards
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CardDto'
+
+  /cards/{id}:
+    get:
+      tags: [Card]
+      summary: Retrieve a card by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Card ID
+      responses:
+        '200':
+          description: Card found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CardDto'
+        '404':
+          description: Card not found
+
+    delete:
+      tags: [Card]
+      summary: Delete a card
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: Card ID
+      responses:
+        '204':
+          description: Card deleted
+        '404':
+          description: Card not found
+
+  /cards/status:
+    put:
+      tags: [Card]
+      summary: Update card status
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardStatusUpdateRequest'
+      responses:
+        '200':
+          description: Card status updated
+        '404':
+          description: Card not found
+
+  /cards/transfer:
+    post:
+      tags: [Transfer]
+      summary: Transfer amount between cards
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CardTransferRequest'
+      responses:
+        '200':
+          description: Transfer completed successfully
+        '400':
+          description: Validation error or insufficient funds
+
+  /users:
+    post:
+      tags: [User]
+      summary: Create a new user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDto'
+
+    get:
+      tags: [User]
+      summary: List all users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDto'
+
+    put:
+      tags: [User]
+      summary: Update an existing user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+      responses:
+        '200':
+          description: User updated successfully
+        '404':
+          description: User not found
+
+  /users/{id}:
+    delete:
+      tags: [User]
+      summary: Delete a user by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: User ID
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          description: User not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CardCreateRequest:
+      type: object
+      required:
+        - ownerUsername
+        - expirationDate
+      properties:
+        ownerUsername:
+          type: string
+          example: alice
+        expirationDate:
+          type: string
+          format: date
+          example: 2027-12-31
+
+    CardDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        maskedCardNumber:
+          type: string
+          example: "**** **** **** 1234"
+        ownerUsername:
+          type: string
+          example: alice
+        expirationDate:
+          type: string
+          format: date
+          example: 2027-12-31
+        status:
+          $ref: '#/components/schemas/CardStatus'
+        balance:
+          type: number
+          format: decimal
+          example: 1000.50
+
+    CardStatusUpdateRequest:
+      type: object
+      required:
+        - cardId
+        - newStatus
+      properties:
+        cardId:
+          type: integer
+          example: 123
+        newStatus:
+          $ref: '#/components/schemas/CardStatus'
+
+    CardTransferRequest:
+      type: object
+      required:
+        - sourceCardNumber
+        - destinationCardNumber
+        - amount
+      properties:
+        sourceCardNumber:
+          type: string
+          example: "**** **** **** 1234"
+        destinationCardNumber:
+          type: string
+          example: "**** **** **** 5678"
+        amount:
+          type: number
+          format: decimal
+          example: 250.00
+
+    CardStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - BLOCKED
+        - EXPIRED
+
+    UserCreateRequest:
+      type: object
+      required:
+        - username
+        - password
+        - role
+      properties:
+        username:
+          type: string
+          example: bob
+        password:
+          type: string
+          format: password
+        role:
+          $ref: '#/components/schemas/Role'
+
+    UserUpdateRequest:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          example: 10
+        password:
+          type: string
+          format: password
+        role:
+          $ref: '#/components/schemas/Role'
+
+    UserDto:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        username:
+          type: string
+          example: bob
+        role:
+          $ref: '#/components/schemas/Role'
+
+    Role:
+      type: string
+      enum:
+        - USER
+        - ADMIN

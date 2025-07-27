@@ -1,0 +1,151 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-init-schema
+      author: Dmitriy Korchagin
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_users
+              - column:
+                  name: keycloak_id
+                  type: VARCHAR(255)
+              - column:
+                  name: email
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_users_email
+              - column:
+                  name: phone
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_users_phone
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 002-create-cards
+      author: Dmitriy Korchagin
+      changes:
+        - createTable:
+            tableName: cards
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_cards
+              - column:
+                  name: card_number_encrypted
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_cards_number
+              - column:
+                  name: owner_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiry_date
+                  type: DATE
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: balance
+                  type: DECIMAL(19,2)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 003-create-card-transfers
+      author: Dmitriy Korchagin
+      changes:
+        - createTable:
+            tableName: card_transfers
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    primaryKeyName: pk_card_transfers
+              - column:
+                  name: from_card_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: to_card_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: DECIMAL(19,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 004-fk-cards-users
+      author: Dmitriy Korchagin
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: cards
+            baseColumnNames: owner_id
+            referencedTableName: users
+            referencedColumnNames: id
+            constraintName: fk_cards_users
+
+  - changeSet:
+      id: 005-fk-transfers-from
+      author: Dmitriy Korchagin
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: card_transfers
+            baseColumnNames: from_card_id
+            referencedTableName: cards
+            referencedColumnNames: id
+            constraintName: fk_transfers_from
+
+  - changeSet:
+      id: 006-fk-transfers-to
+      author: Dmitriy Korchagin
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: card_transfers
+            baseColumnNames: to_card_id
+            referencedTableName: cards
+            referencedColumnNames: id
+            constraintName: fk_transfers_to
